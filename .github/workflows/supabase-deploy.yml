@@ -1,0 +1,35 @@
+name: Supabase Deployment
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Supabase
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+          supabase secrets set --env-file .env.local
+
+      - name: Deploy Supabase migrations
+        run: |
+          supabase db push
+
+      - name: Deploy Supabase edge functions
+        run: |
+          supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+
